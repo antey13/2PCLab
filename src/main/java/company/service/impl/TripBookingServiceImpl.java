@@ -35,7 +35,7 @@ public class TripBookingServiceImpl implements TripBookingService {
         }
 
         if (booking.getFail()) {
-            throw new RuntimeException();
+            throw new RuntimeException("failed to book flight");
         }
 
         var hotelBooking = hotelBookingService.book(booking.getHotel());

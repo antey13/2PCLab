@@ -1,0 +1,24 @@
+version: '3.3'
+services:
+
+  fly-db:
+    image: postgres:12.1
+    volumes:
+      - ./db.scripts/initFlights.sql:/docker-entrypoint-initdb.d/2-data.sql
+    command: --max_prepared_transactions=5
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres123
+    ports:
+      - 5436:5432
+
+  hotel-db:
+    image: postgres:12.1
+    volumes:
+      - ./db.scripts/hotel/.sql:/docker-entrypoint-initdb.d/2-data.sql
+    command: --max_prepared_transactions=5
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres123
+    ports:
+      - 5435:5432

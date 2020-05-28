@@ -1,8 +1,6 @@
-package company.service;
+package company.service.tm;
 
-import company.DefaultTransactorManager;
 import company.model.TripBooking;
-import company.model.fly.FlyBooking;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +22,6 @@ import static javax.transaction.xa.XAResource.TMSUCCESS;
 public class MyTM {
     public static byte[] gtrid = new byte[]{0x44, 0x11, 0x55, 0x66};
     public static byte[] bqual = new byte[]{0x00, 0x22, 0x00};
-    private final DataSource moneyDataSource;
     private final DataSource hotelDataSource;
     private final DataSource flyDataSource;
 
@@ -54,7 +51,7 @@ public class MyTM {
 
     public void twoPhaseCommitTransaction(TripBooking tripBooking) {
 
-        var xid = new DefaultTransactorManager.XID(100, gtrid, bqual);
+        XID xid = new MyTM.XID(100, gtrid, bqual);
 
         try {
 
@@ -102,7 +99,7 @@ public class MyTM {
         statement.execute(query);
     }
 
-    private static void commitTwoPhase(XAResource xaRes1, XAResource xaRes2, DefaultTransactorManager.XID xid) {
+    private static void commitTwoPhase(XAResource xaRes1, XAResource xaRes2, MyTM.XID xid) {
         try {
             xaRes1.prepare(xid);
             xaRes2.prepare(xid);

@@ -1,10 +1,15 @@
 package company.web;
 
 import company.model.TripBooking;
-import company.service.MyTM;
+import company.model.fly.FlyBooking;
+import company.model.hotel.HotelBooking;
 import company.service.TripBookingService;
+import company.service.tm.MyTM;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.PostConstruct;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/booking")
@@ -21,6 +26,19 @@ public class BookingController {
     @PostMapping
     public void twoPC(@RequestBody TripBooking booking){
         transactionManager.twoPhaseCommitTransaction(booking);
+    }
+
+    @PostConstruct
+    public void makeTransaktion(){
+        FlyBooking flight = new FlyBooking();
+        flight.setDate(LocalDate.now());
+        flight.setFrom("From");
+        flight.setTo("To");
+        flight.setFlyNumber("NuMBer");
+        flight.setClientName("MeClient");
+        HotelBooking hotelBooking = new HotelBooking("HotelLab",LocalDate.now(),LocalDate.of(2020,10,1));
+        hotelBooking.setClientName("MeClient");
+        transactionManager.twoPhaseCommitTransaction(new TripBooking(flight,hotelBooking,false,1000l));
     }
 
 }

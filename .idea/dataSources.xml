@@ -13,11 +13,5 @@
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
       <jdbc-url>jdbc:postgresql://localhost:5436/postgres</jdbc-url>
     </data-source>
-    <data-source source="LOCAL" name="psMoney" uuid="ff01f883-4e4f-4c2c-8759-9a5b8fdd8c33">
-      <driver-ref>postgresql</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://localhost:5437/postgres</jdbc-url>
-    </data-source>
   </component>
 </project>
