@@ -1,6 +1,8 @@
 package company.service.tm;
 
 import company.model.TripBooking;
+import company.model.money.Money;
+import company.repository.money.MoneyRepository;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,8 @@ public class MyTM {
     public static byte[] bqual = new byte[]{0x00, 0x22, 0x00};
     private final DataSource hotelDataSource;
     private final DataSource flyDataSource;
+    private final DataSource moneyDataSource;
+    private final MoneyRepository moneyRepository;
 
     @EqualsAndHashCode
     @AllArgsConstructor
@@ -69,7 +73,13 @@ public class MyTM {
 
             var xaHotelResource = prepareTransaction(((AtomikosDataSourceBean)hotelDataSource).getXaDataSource().getXAConnection(), xid, insertHotelQuery);
 
-            commitTwoPhase(xaFlyResource, xaHotelResource, xid);
+            Money clientMoney = moneyRepository.findByClientName(hotel.getClientName());
+
+            var getMoneyQuery = String.format("UPDATE third.third_booking SET money = %s WHERE client_name = '%s'",clientMoney.getMoney()-100,hotel.getClientName());
+
+            var xaMoneyResource = prepareTransaction(((AtomikosDataSourceBean)moneyDataSource).getXaDataSource().getXAConnection(), xid, getMoneyQuery);
+
+            commitTwoPhase(xaFlyResource, xaHotelResource,xaMoneyResource, xid);
 
         } catch (SQLException sqe) {
             System.out.println("SQLException caught: " + sqe.getMessage());
@@ -99,17 +109,20 @@ public class MyTM {
         statement.execute(query);
     }
 
-    private static void commitTwoPhase(XAResource xaRes1, XAResource xaRes2, MyTM.XID xid) {
+    private static void commitTwoPhase(XAResource xaRes1, XAResource xaRes2,XAResource xaRes3, MyTM.XID xid) {
         try {
             xaRes1.prepare(xid);
             xaRes2.prepare(xid);
+            xaRes3.prepare(xid);
 
             xaRes1.commit(xid, false);
             xaRes2.commit(xid, false);
+            xaRes3.commit(xid, false);
         } catch (XAException e) {
             try {
                 xaRes1.rollback(xid);
                 xaRes2.rollback(xid);
+                xaRes3.rollback(xid);
             } catch (XAException ex) {
                 ex.printStackTrace();
             }

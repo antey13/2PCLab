@@ -1,51 +1,50 @@
 package company.service.impl;
 
-import company.TimeUtils;
 import company.model.TripBooking;
+import company.model.fly.FlyBooking;
+import company.model.hotel.HotelBooking;
 import company.service.FlyBookingService;
 import company.service.HotelBookingService;
 import company.service.TripBookingService;
+import company.service.tm.MyTM;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-
-import static java.util.Objects.isNull;
+import javax.annotation.PostConstruct;
+import java.time.LocalDate;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TripBookingServiceImpl implements TripBookingService {
-
+    private final MyTM transactionManager;
     private final FlyBookingService flyBookingService;
     private final HotelBookingService hotelBookingService;
 
     @Override
-    @Transactional
     public TripBooking book(TripBooking booking) {
-
-        var flyBooking = flyBookingService.book(booking.getFlight());
-        log.debug("Fly booking precommit successful");
-
-        Long timeToSleep = booking.getWait();
-
-        if (! isNull(timeToSleep) && timeToSleep > 0) {
-            TimeUtils.sleep(timeToSleep);
-        }
-
-        if (booking.getFail()) {
-            throw new RuntimeException("failed to book flight");
-        }
-
-        var hotelBooking = hotelBookingService.book(booking.getHotel());
-
-        return new TripBooking(flyBooking, hotelBooking, null, null);
+        transactionManager.twoPhaseCommitTransaction(booking);
+        return booking;
     }
+
 
     @Override
     public TripBooking find(Long bookingId) {
         return null;
+    }
+
+    @PostConstruct
+    public void makeTransaktion(){
+        FlyBooking flight = new FlyBooking();
+        flight.setDate(LocalDate.now());
+        flight.setFrom("From");
+        flight.setTo("To");
+        flight.setFlyNumber("NuMBer");
+        flight.setClientName("Person1");
+        HotelBooking hotelBooking = new HotelBooking("HotelLab",LocalDate.now(),LocalDate.of(2020,10,1));
+        hotelBooking.setClientName("Person1");
+        transactionManager.twoPhaseCommitTransaction(new TripBooking(flight,hotelBooking,false,1000l));
     }
 
 }

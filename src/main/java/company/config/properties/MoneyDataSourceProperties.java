@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-@ConfigurationProperties(prefix = "db.money")
+@ConfigurationProperties(prefix = "db.third")
 public class MoneyDataSourceProperties {
     private Integer port;
     private String database;
